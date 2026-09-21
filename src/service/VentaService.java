@@ -26,7 +26,7 @@ public class VentaService {
         Cliente cliente = clienteService.buscarCliente(dniCliente);
 
         if (cliente == null) {
-            Console.error("Cliente no existe");
+            imprimirError("Cliente no existe");
             return;
         }
 
@@ -34,24 +34,19 @@ public class VentaService {
         Console.info("Venta creada para: " + cliente.getNombre());
     }
 
-    // BUG intencional: permite cantidad 0 o negativa por Validaciones
-    // Code smell: repetición de mensajes y validaciones
     public void agregarProductoVenta(int idProducto, int cantidad) {
 
-        if (ventaActual == null) {
-            Console.error("No hay venta activa");
-            return;
-        }
+        if (!validarVentaActiva()) return;
 
         Producto producto = productoService.buscarProducto(idProducto);
 
         if (producto == null) {
-            Console.error("Producto no encontrado");
+            imprimirError("Producto no encontrado");
             return;
         }
 
         if (!Validaciones.validarCantidad(cantidad)) {
-            Console.error("Cantidad inválida");
+            imprimirError("Cantidad inválida");
             return;
         }
 
@@ -61,10 +56,7 @@ public class VentaService {
 
     public void finalizarVenta() {
 
-        if (ventaActual == null) {
-            Console.error("No hay venta activa");
-            return;
-        }
+        if (!validarVentaActiva()) return;
 
         ventaActual.finalizar();
         ventaRepo.guardar(ventaActual);
@@ -75,5 +67,19 @@ public class VentaService {
 
     public Venta obtenerVentaActual() {
         return ventaActual;
+    }
+
+    // ---- métodos privados (Refactor Semana 4) ----
+
+    private void imprimirError(String msg) {
+        Console.error(msg);
+    }
+
+    private boolean validarVentaActiva() {
+        if (ventaActual == null) {
+            imprimirError("No hay venta activa");
+            return false;
+        }
+        return true;
     }
 }
